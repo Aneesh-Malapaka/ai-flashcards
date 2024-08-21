@@ -19,3 +19,27 @@ code {
 .links div > a:hover{
   border-bottom: 2px solid blue;
 }
+
+
+.flashcard {
+  transition: all .4s linear;
+  transform-style: preserve-3d;
+  height: 350px;
+}
+
+.side {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  backface-visibility: hidden;
+  left: 0;
+  padding: 0 20px;
+}
+
+.back {
+  transform: rotateY(180deg);
+}
+
+.flashcard:hover {
+  transform: rotateY(180deg);
+}

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import axios from 'axios'
+import axios from "axios";
 import {
   Button,
   Card,
@@ -16,10 +16,10 @@ function PaidUserContent() {
   const [userInput, setUserInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [difficulty, setDifficulty] = useState(1);
+  const [flashCards, setFlashCards] = useState([]);
 
   const handleProFlashCardGeneration = async () => {
     console.log("Generating flashcards...");
-    console.log(subject, topic, rangeValue, difficulty);
     const userId = JSON.parse(localStorage.getItem("loggedIn")).uid;
 
     const flashCardGen = {
@@ -28,11 +28,23 @@ function PaidUserContent() {
       difficulty: difficulty,
       quantity: rangeValue,
       userInput: userInput,
-      user_id:userId
-    }
+      user_id: userId,
+    };
 
-    const response=await axios.post('http://localhost:8000/api/flashcardgen/', flashCardGen)
-    console.log(response.data)
+    const response = await axios.post(
+      "http://localhost:5000/api/paid/generate-flashcards",
+      flashCardGen
+    );
+    const result = response.data.flashcards
+    Object.entries(result).forEach(([key,value])=>{
+      setFlashCards((prevFlashCards) => [
+        ...prevFlashCards,
+        {
+          question: value.question,
+          answer: value.answer,
+        },
+      ]);
+    })
   };
   return (
     <div>
@@ -70,7 +82,7 @@ function PaidUserContent() {
             {
               <Label
                 htmlFor="difficultySetting"
-                value="Select Difficulty of Flash Cards - "
+                value={`Difficulty Level: ${difficulty}`}
               />
             }
           </div>
@@ -89,8 +101,9 @@ function PaidUserContent() {
         </div>
         <div>
           <div className="mb-1 block">
-            <Label htmlFor="flashCardsQuantity" value="Number of Flash Cards" />
+            <Label htmlFor="flashCardsQuantity" value={`Number of Flash Cards (5-25) - ${rangeValue}`} />
           </div>
+          
           <RangeSlider
             id="flashCardsQuantity"
             sizing="lg"
@@ -99,6 +112,7 @@ function PaidUserContent() {
             value={rangeValue}
             onChange={(e) => setRangeValue(e.target.value)}
           />
+          
         </div>
         <div className="max-w-md">
           <div className="mb-2 block">
@@ -113,13 +127,26 @@ function PaidUserContent() {
             onChange={(e) => setUserInput(e.target.value)}
           />
         </div>
-        <Button type="button" onClick={handleProFlashCardGeneration()}>
+        <Button type="button" onClick={handleProFlashCardGeneration}>
           Submit
         </Button>
       </form>
-      <div className="flashCards py-10">
-        <FlashCardsGen />
-      </div>
+      <div className="flashcards grid grid-cols-3 grid-rows-3 gap-4 py-10">
+            {flashCards.map((card, index) => (
+              <div key={index} className="flashcard p-5 shadow-md width-3/4 border-2 border-gray-200 rounded-lg">
+                <div className="front side">
+                  <p>
+                    <strong>Question:</strong> {card.question}
+                  </p>
+                </div>
+                <div className="back side">
+                  <p>
+                    <strong>Answer:</strong> {card.answer}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
     </div>
   );
 }

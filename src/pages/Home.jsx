@@ -1,25 +1,45 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import PaidUserContent from "../components/PaidUserContent";
-import {axios} from 'axios'
+import axios from "axios";
 function Home() {
   const [userPaid, setUserPaid] = useState(false);
   const [rangeValue, setRangeValue] = useState(5);
   const [userInput, setUserInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [flashcards, setFlashcards] = useState([]);
 
-  const handleFlashCardGeneration =async () => {
+  const handleFlashCardGeneration = async () => {
     console.log("Generating flashcards...");
     const userId = JSON.parse(localStorage.getItem("loggedIn")).uid;
 
     const flashCardGen = {
       userInput: userInput,
       quantity: rangeValue,
-      user_id:userId
-    }
+      user_id: userId,
+    };
 
-    const response=await axios.post('http://localhost:8000/api/flashcardgen/', flashCardGen)
-    console.log(response.data)
+    const response = await axios.post(
+      "http://localhost:5000/api/free/generate-flashcards",
+      flashCardGen
+    );
+    console.log(
+      JSON.parse(response.data.text),
+      typeof JSON.parse(response.data.text)
+    );
+    const resCards = JSON.parse(response.data.text);
+    console.log(resCards);
+    Object.entries(resCards).forEach((key, value) => {
+      setFlashcards((prevValue) => [
+        ...prevValue,
+        { question: key[1].question, answer: key[1].answer },
+      ]);
+      console.log(key, value);
+    });
   };
+
+  // useEffect(()=>{
+  //   console.log(flashcards)
+  // }, [flashcards])
   return (
     <main className="p-5">
       {userPaid ? (
@@ -46,11 +66,11 @@ function Home() {
               </label>
               <textarea
                 id="message"
-                value = {userInput}
+                value={userInput}
                 rows="4"
                 className="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500"
                 placeholder="Describe your flashcards topic here."
-                onChange={(e)=> setUserInput(e.target.value)}
+                onChange={(e) => setUserInput(e.target.value)}
               ></textarea>
             </div>
             <div className="flashcardsQuantityDiv">
@@ -87,6 +107,22 @@ function Home() {
             >
               Generate FlashCards
             </button>
+          </div>
+          <div className="flashcards grid grid-cols-3 grid-rows-3 gap-4">
+            {flashcards.map((card, index) => (
+              <div key={index} className="flashcard p-5 shadow-md width-3/4 border-2 border-gray-200 rounded-lg">
+                <div className="front side">
+                  <p>
+                    <strong>Question:</strong> {card.question}
+                  </p>
+                </div>
+                <div className="back side">
+                  <p>
+                    <strong>Answer:</strong> {card.answer}
+                  </p>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       )}
